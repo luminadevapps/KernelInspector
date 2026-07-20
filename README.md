@@ -4,6 +4,16 @@ An all-in-one macOS app for inspecting **kernel extensions (`.kext`)** and Mach-
 binaries — modelled loosely on Hopper Disassembler. Open a bundle or a raw binary
 and explore it through six panes:
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Info.plist browser](docs/screenshots/info-plist.png) | ![Disassembly](docs/screenshots/disassembly.png) |
+| **Info.plist** — kext bundle browser | **Disassembly** — filtered x86-64 view |
+| ![Install Kexts](docs/screenshots/install-kexts.png) | ![Maintenance](docs/screenshots/maintenance.png) |
+| **Install Kexts** — readiness dashboard | **Maintenance** — EFI partition mounter |
+
+
 | Pane | What it does |
 |------|--------------|
 | **Info.plist** | Kext bundle browser: identifier, version, UUID, linked libraries, and a flattened, searchable Info.plist table. |
