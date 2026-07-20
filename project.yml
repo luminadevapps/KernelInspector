@@ -1,0 +1,38 @@
+# XcodeGen spec — generates a proper KernelInspector.xcodeproj (App target).
+# Usage:  brew install xcodegen && xcodegen generate && open KernelInspector.xcodeproj
+name: KernelInspector
+options:
+  bundleIdPrefix: com.lumina
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    # Ad-hoc "Sign to Run Locally" — no Apple Developer account needed.
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGNING_ALLOWED: "YES"
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: "NO"
+targets:
+  KernelInspector:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/KernelInspector
+      - Assets.xcassets
+    settings:
+      base:
+        # No space here — must match CFBundleExecutable in Info.plist, or
+        # codesign fails with "code object is not signed at all".
+        # The pretty name "Kernel Inspector" comes from CFBundleDisplayName.
+        PRODUCT_NAME: KernelInspector
+        EXECUTABLE_NAME: KernelInspector
+        PRODUCT_BUNDLE_IDENTIFIER: com.lumina.KernelInspector
+        INFOPLIST_FILE: AppResources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COMBINE_HIDPI_IMAGES: YES
