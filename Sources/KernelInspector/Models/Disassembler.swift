@@ -60,6 +60,42 @@ enum Disassembler {
         return backend == .otool ? parseOtool(output) : parseObjdump(output)
     }
 
+    /// Fills the `bytes` column for instructions that don't already have it
+    /// (otool -tvV omits raw bytes). Length is derived from the gap to the next
+    /// instruction (ARM64 is always 4). Bytes are read from the file via the
+    /// section map. Returns instructions sorted by address.
+    static func fillBytes(_ insns: [Instruction], image: MachOImage, data: Data, arch: String) -> [Instruction] {
+        guard !insns.isEmpty, !data.isEmpty else { return insns }
+        let isARM = arch.lowercased().contains("arm")
+        let sorted = insns.sorted { $0.address < $1.address }
+        var out: [Instruction] = []
+        out.reserveCapacity(sorted.count)
+        for i in 0..<sorted.count {
+            let ins = sorted[i]
+            if !ins.bytes.isEmpty { out.append(ins); continue }   // objdump already provided them
+            var length = 4
+            if !isARM {
+                if i + 1 < sorted.count {
+                    let d = Int(sorted[i + 1].address) - Int(ins.address)
+                    length = (d >= 1 && d <= 15) ? d : 0          // 0 = unknown (gap / last)
+                } else {
+                    length = 0
+                }
+            }
+            var hex = ""
+            if length > 0,
+               let off = PortLimitScanner.fileOffset(forVM: ins.address, image: image),
+               off >= 0, off + length <= data.count {
+                let base = data.startIndex
+                hex = data[base + off ..< base + off + length]
+                    .map { String(format: "%02x", $0) }.joined(separator: " ")
+            }
+            out.append(Instruction(address: ins.address, bytes: hex,
+                                   mnemonic: ins.mnemonic, operands: ins.operands))
+        }
+        return out
+    }
+
     private static func run(tool: String, args: [String]) -> String? {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: tool)

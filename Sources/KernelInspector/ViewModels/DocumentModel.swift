@@ -68,8 +68,10 @@ final class DocumentModel: ObservableObject {
         isDisassembling = true
         let url = t.binaryURL
         let arch = img.arch
+        let data = fileData
         Task.detached(priority: .userInitiated) {
-            let insns = Disassembler.disassemble(binaryURL: url, arch: arch)
+            let raw = Disassembler.disassemble(binaryURL: url, arch: arch)
+            let insns = Disassembler.fillBytes(raw, image: img, data: data, arch: arch)
             await MainActor.run {
                 self.instructions = insns
                 self.computeFunctions()          // O(n) slice, done once

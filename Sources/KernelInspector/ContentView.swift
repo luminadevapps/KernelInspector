@@ -7,8 +7,12 @@ enum Pane: String, CaseIterable, Identifiable {
     case disassembly = "Disassembly"
     case cfg = "Control Flow"
     case pseudocode = "Pseudocode"
+    case portLimit = "Port-Limit Patch"
     case installKexts = "Install Kexts"
     case maintenance = "Maintenance"
+    case usbPorts = "USB Ports"
+    case xcpm = "XCPM / CPU"
+    case ssdt = "SSDT Generator"
 
     var id: String { rawValue }
     var icon: String {
@@ -19,13 +23,21 @@ enum Pane: String, CaseIterable, Identifiable {
         case .disassembly: return "chevron.left.forwardslash.chevron.right"
         case .cfg: return "point.3.connected.trianglepath.dotted"
         case .pseudocode: return "curlybraces"
+        case .portLimit: return "bolt.shield"
         case .installKexts: return "square.and.arrow.down.on.square"
         case .maintenance: return "wrench.and.screwdriver"
+        case .usbPorts: return "cable.connector.horizontal"
+        case .xcpm: return "speedometer"
+        case .ssdt: return "cpu"
         }
     }
 
-    /// Panes that work without a loaded binary (system tools).
-    var needsBinary: Bool { self != .installKexts && self != .maintenance }
+    /// Panes that work without a loaded binary (system tools + the port-limit
+    /// tool, which shows its own controls/guidance and an Open button).
+    var needsBinary: Bool {
+        self != .installKexts && self != .maintenance && self != .ssdt
+            && self != .portLimit && self != .usbPorts && self != .xcpm
+    }
 }
 
 /// Sidebar grouping.
@@ -35,8 +47,8 @@ enum PaneGroup: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var panes: [Pane] {
         switch self {
-        case .analyze: return [.info, .hex, .symbols, .disassembly, .cfg, .pseudocode]
-        case .system:  return [.installKexts, .maintenance]
+        case .analyze: return [.info, .hex, .symbols, .disassembly, .cfg, .pseudocode, .portLimit]
+        case .system:  return [.installKexts, .maintenance, .usbPorts, .xcpm, .ssdt]
         }
     }
 }
@@ -76,6 +88,10 @@ struct ContentView: View {
                     switch current {
                     case .installKexts: InstallKextsView()
                     case .maintenance:  MaintenanceView()
+                    case .ssdt:         SSDTGeneratorView()
+                    case .portLimit:    PortLimitView()
+                    case .usbPorts:     USBPortsView()
+                    case .xcpm:         XCPMPatchView()
                     default:            EmptyStateView()
                     }
                 } else if doc.isLoaded {
@@ -86,8 +102,12 @@ struct ContentView: View {
                     case .disassembly: DisassemblyView()
                     case .cfg:         CFGView()
                     case .pseudocode:  PseudocodeView()
+                    case .portLimit:   PortLimitView()
                     case .installKexts: InstallKextsView()
                     case .maintenance:  MaintenanceView()
+                    case .usbPorts:     USBPortsView()
+                    case .xcpm:         XCPMPatchView()
+                    case .ssdt:         SSDTGeneratorView()
                     }
                 } else {
                     EmptyStateView()
