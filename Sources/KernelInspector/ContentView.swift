@@ -138,6 +138,14 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom) {
             StatusBar()
         }
+        // A view (e.g. the Symbols list) asked to switch panes — honour it, then
+        // clear the request so it fires once.
+        .onChange(of: doc.paneRequest) { _, req in
+            if let req {
+                pane = req
+                doc.paneRequest = nil
+            }
+        }
     }
 }
 

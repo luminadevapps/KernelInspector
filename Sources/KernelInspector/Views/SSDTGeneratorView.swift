@@ -98,7 +98,7 @@ final class SSDTGenModel: ObservableObject {
     // MARK: Build list
 
     private func allSSDTs() -> [(name: String, dsl: String)] {
-        var list: [(name: String, dsl: String)] = [
+        let list: [(name: String, dsl: String)] = [
             ("SSDT-PLUG", SSDTBuilder.cpuPlug()),
             ("SSDT-DTPG", SSDTBuilder.dtpg()),
             ("SSDT-EC-USBX", SSDTBuilder.ecUSBX()),

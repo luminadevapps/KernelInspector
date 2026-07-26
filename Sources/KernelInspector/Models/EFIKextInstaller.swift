@@ -107,10 +107,26 @@ enum EFIKextInstaller {
 
         let stamp = Int(Date().timeIntervalSince1970)
         let backup = "\(target.configPath).ki-backup-\(stamp)"
+        let rollback = "\(target.mountPoint)/EFI/OC/ki-rollback-\(stamp).sh"
+
+        // A one-command undo, written next to the backup on the EFI itself so
+        // it is reachable from another machine or a USB boot if this install
+        // leaves the system without working input. Installing a bad kext can
+        // cost you your keyboard — recovery must not depend on the GUI.
+        let rollbackScript = rollbackText(kextName: name,
+                                          bundlePaths: toAdd.compactMap { $0["BundlePath"] as? String },
+                                          configPath: target.configPath,
+                                          backupPath: backup,
+                                          kextsDir: target.kextsDir)
+        let tmpRollback = NSTemporaryDirectory() + "ki-rollback-\(stamp).sh"
+        try? rollbackScript.write(toFile: tmpRollback, atomically: true, encoding: .utf8)
+
         let cmd = [
             "/bin/cp '\(target.configPath)' '\(backup)'",
             "/bin/cp -R '\(kextURL.path)' '\(target.kextsDir)/'",
-            "/bin/cp '\(tmp)' '\(target.configPath)'"
+            "/bin/cp '\(tmp)' '\(target.configPath)'",
+            "/bin/cp '\(tmpRollback)' '\(rollback)'",
+            "/bin/chmod +x '\(rollback)'"
         ].joined(separator: " && ")
 
         var log = "Install \(name) → \(target.mountPoint)\n"
@@ -119,9 +135,56 @@ enum EFIKextInstaller {
         log += "$ \(cmd)\n"
 
         let (ok, out) = PrivilegedShell.run(cmd)
-        log += ok
-            ? "✅ Done. Backup saved: \(backup)\nReboot for OpenCore to load it.\n\(out)"
-            : "❌ \(out)"
+        if ok {
+            log += """
+            ✅ Done. Reboot for OpenCore to load it.
+
+            IF THIS BREAKS BOOT OR INPUT — undo with:
+                sudo bash '\(rollback)'
+
+            That restores config.plist and removes \(name). The script lives on
+            the EFI partition, so you can run it from another Mac or a USB boot.
+            config.plist backup: \(backup)
+            \(out)
+            """
+        } else {
+            log += "❌ \(out)"
+        }
         return (ok, log)
+    }
+
+    /// Text of the undo script written onto the EFI beside the backup.
+    private static func rollbackText(kextName: String, bundlePaths: [String],
+                                     configPath: String, backupPath: String,
+                                     kextsDir: String) -> String {
+        let list = bundlePaths.map { "  - \($0)" }.joined(separator: "\n")
+        return """
+        #!/bin/bash
+        # Undo the Kernel Inspector install of \(kextName).
+        # Restores config.plist from the backup taken at install time and
+        # removes the kext from EFI/OC/Kexts. Run with sudo, then reboot.
+        #
+        # Entries that were added:
+        \(list)
+        set -euo pipefail
+
+        CONFIG="\(configPath)"
+        BACKUP="\(backupPath)"
+        KEXTS="\(kextsDir)"
+
+        if [ ! -f "$BACKUP" ]; then
+          echo "Backup not found: $BACKUP" >&2
+          echo "The EFI may not be mounted. Mount it and run this again." >&2
+          exit 1
+        fi
+
+        cp "$CONFIG" "$CONFIG.before-rollback"
+        cp "$BACKUP" "$CONFIG"
+        rm -rf "$KEXTS/\(kextName)"
+
+        echo "Restored config.plist from $BACKUP"
+        echo "Removed $KEXTS/\(kextName)"
+        echo "Reboot now."
+        """
     }
 }

@@ -12,6 +12,12 @@ final class DocumentModel: ObservableObject {
     @Published var isDisassembling = false
     @Published var backendName: String = Disassembler.availableBackend()?.rawValue ?? "none found"
 
+    /// Cross-pane navigation. Clicking a symbol sets an address the Disassembly
+    /// pane should jump to, and asks ContentView to switch to that pane. Both
+    /// are cleared by the consumer once handled.
+    @Published var pendingDisassemblyAddress: UInt64?
+    @Published var paneRequest: Pane?
+
     var isLoaded: Bool { image != nil }
 
     // MARK: Loading
