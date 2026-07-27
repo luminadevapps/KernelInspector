@@ -55,6 +55,7 @@ enum PaneGroup: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @EnvironmentObject var doc: DocumentModel
+    @EnvironmentObject var updater: UpdateChecker
     @State private var pane: Pane? = .info
 
     var body: some View {
@@ -135,8 +136,33 @@ struct ContentView: View {
                 .help("Close the loaded binary and return to the welcome screen")
             }
         }
+        .safeAreaInset(edge: .top) {
+            UpdateBannerView()
+                .animation(.easeInOut(duration: 0.2), value: updater.availableUpdate)
+        }
         .safeAreaInset(edge: .bottom) {
             StatusBar()
+        }
+        // Check GitHub for a newer release once, shortly after launch.
+        .task {
+            updater.checkInBackground()
+        }
+        // Release-notes / download-&-install dialog for an available update.
+        .sheet(isPresented: $updater.isShowingDetails) {
+            if let update = updater.availableUpdate {
+                UpdateSheetView(
+                    update: update,
+                    currentVersion: updater.currentVersion,
+                    onSkip: { updater.skipCurrentUpdate() },
+                    onLater: { updater.isShowingDetails = false }
+                )
+            }
+        }
+        // Confirmation shown only after the user explicitly checked and is current.
+        .alert("You're up to date", isPresented: $updater.lastCheckWasUpToDate) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Kernel Inspector \(updater.currentVersion) is the latest version.")
         }
         // A view (e.g. the Symbols list) asked to switch panes — honour it, then
         // clear the request so it fires once.

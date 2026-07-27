@@ -11,7 +11,15 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 OUT="$ROOT/build"
 APP="$OUT/${APP_NAME}.app"
 
-echo "==> [1/5] Building release binary…"
+# Find the SwiftPM package root (the directory containing Package.swift) by
+# walking up from this script's location, then build from there. This makes the
+# script work no matter which directory you run it from.
+PKG="$ROOT"
+while [ "$PKG" != "/" ] && [ ! -f "$PKG/Package.swift" ]; do PKG="$(dirname "$PKG")"; done
+[ -f "$PKG/Package.swift" ] || { echo "Could not find Package.swift above $ROOT"; exit 1; }
+cd "$PKG"
+
+echo "==> [1/5] Building release binary…  (package: $PKG)"
 swift build -c release
 BIN="$(swift build -c release --show-bin-path)/$EXE"
 [ -f "$BIN" ] || { echo "Build product not found at $BIN"; exit 1; }

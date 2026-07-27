@@ -9,16 +9,22 @@ import AppKit
 @main
 struct KernelInspectorApp: App {
     @StateObject private var document = DocumentModel()
+    @StateObject private var updater = UpdateChecker()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(document)
+                .environmentObject(updater)
                 .frame(minWidth: 1150, minHeight: 720)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About Kernel Inspector") { AboutPanel.show() }
+                Button(updater.isChecking ? "Checking for Updates…" : "Check for Updates…") {
+                    updater.checkNow()
+                }
+                .disabled(updater.isChecking)
             }
             CommandGroup(replacing: .newItem) {}
             CommandGroup(after: .newItem) {
