@@ -10,7 +10,7 @@ set -euo pipefail
 
 APP_NAME="Kernel Inspector"
 VOL_NAME="Kernel Inspector"
-VERSION="1.1.2"
+VERSION="1.1.4"
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 OUT="$ROOT/build"

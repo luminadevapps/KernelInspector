@@ -87,7 +87,13 @@ final class UpdateInstaller: ObservableObject {
 
         do {
             try UpdateInstaller.swapAndRelaunch(newApp: staged, installedApp: installed)
-            NSApp.terminate(nil)   // helper waits for us to quit, then swaps + relaunches.
+            // Exit hard rather than NSApp.terminate(): the update dialog is a modal
+            // sheet, and AppKit refuses (and just beeps) if asked to terminate during
+            // a modal session. exit() bypasses that and guarantees we quit so the
+            // detached helper can swap the bundle. Small delay lets the helper spawn.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                exit(0)
+            }
         } catch {
             phase = .failed(error.localizedDescription)
         }
@@ -134,27 +140,37 @@ final class UpdateInstaller: ObservableObject {
         let pid = ProcessInfo.processInfo.processIdentifier
         let target = installedApp.path
         let source = newApp.path
+        let log = (NSHomeDirectory() as NSString)
+            .appendingPathComponent("Library/Logs/KernelInspectorUpdate.log")
 
         let script = """
         #!/bin/bash
-        # Wait for Kernel Inspector (pid \(pid)) to quit before touching its bundle.
+        exec >> "\(log)" 2>&1
+        echo "[$(date)] helper start — waiting for pid \(pid) to quit"
         while /bin/kill -0 \(pid) 2>/dev/null; do /bin/sleep 0.2; done
         /bin/sleep 0.3
-        /usr/bin/ditto "\(source)" "\(target).new" || exit 1
+        echo "[$(date)] swapping bundle: \(target)"
+        /usr/bin/ditto "\(source)" "\(target).new" || { echo "ditto failed"; exit 1; }
         /bin/rm -rf "\(target)"
-        /bin/mv "\(target).new" "\(target)" || exit 1
+        /bin/mv "\(target).new" "\(target)" || { echo "mv failed"; exit 1; }
         /usr/bin/xattr -dr com.apple.quarantine "\(target)" 2>/dev/null
+        echo "[$(date)] relaunching"
         /usr/bin/open "\(target)"
+        echo "[$(date)] done"
         """
 
         let scriptURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("ki-update-\(UUID().uuidString).sh")
         try script.write(to: scriptURL, atomically: true, encoding: .utf8)
 
+        // Launch fully detached (nohup + background) so the helper survives our
+        // exit: the outer shell backgrounds the job and returns immediately, and
+        // the job is reparented to launchd rather than dying with us.
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/bash")
-        p.arguments = [scriptURL.path]
-        try p.run()   // detached — keeps running after we terminate.
+        p.arguments = ["-c", "nohup /bin/bash \"\(scriptURL.path)\" >/dev/null 2>&1 &"]
+        try p.run()
+        p.waitUntilExit()   // returns at once — the real work is backgrounded.
     }
 
     /// Run a command, capturing output; throws with the output on non-zero exit.

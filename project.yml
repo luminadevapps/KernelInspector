@@ -8,8 +8,8 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    MARKETING_VERSION: "1.1.2"
-    CURRENT_PROJECT_VERSION: "4"
+    MARKETING_VERSION: "1.1.4"
+    CURRENT_PROJECT_VERSION: "6"
     SWIFT_VERSION: "5.9"
     # Ad-hoc "Sign to Run Locally" — no Apple Developer account needed.
     CODE_SIGN_IDENTITY: "-"

@@ -2,18 +2,31 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key>            <string>Kernel Inspector</string>
-    <key>CFBundleDisplayName</key>     <string>Kernel Inspector</string>
-    <key>CFBundleIdentifier</key>      <string>com.lumina.KernelInspector</string>
-    <key>CFBundleExecutable</key>      <string>KernelInspector</string>
-    <key>CFBundleIconFile</key>        <string>AppIcon</string>
-    <key>CFBundlePackageType</key>     <string>APPL</string>
-    <key>CFBundleShortVersionString</key> <string>1.1.2</string>
-    <key>CFBundleVersion</key>         <string>4</string>
-    <key>CFBundleGetInfoString</key>   <string>Kernel Inspector 1.1.2 — © 2026 Lumina Dev Apps, a division of Direct Parcel Distributors Inc.</string>
-    <key>LSMinimumSystemVersion</key>  <string>13.0</string>
-    <key>NSHighResolutionCapable</key> <true/>
-    <key>LSApplicationCategoryType</key> <string>public.app-category.developer-tools</string>
-    <key>NSHumanReadableCopyright</key> <string>© 2026 Lumina Dev Apps, a division of Direct Parcel Distributors Inc.</string>
+	<key>CFBundleDisplayName</key>
+	<string>Kernel Inspector</string>
+	<key>CFBundleExecutable</key>
+	<string>KernelInspector</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Kernel Inspector 1.1.4 — © 2026 Lumina Dev Apps, a division of Direct Parcel Distributors Inc.</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.lumina.KernelInspector</string>
+	<key>CFBundleName</key>
+	<string>Kernel Inspector</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.1.4</string>
+	<key>CFBundleVersion</key>
+	<string>6</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>© 2026 Lumina Dev Apps, a division of Direct Parcel Distributors Inc.</string>
 </dict>
 </plist>
